@@ -6,7 +6,10 @@ import { ethers } from 'ethers';
 import xxhash, { XXHashAPI } from 'xxhash-wasm';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
 import { pascalCase } from 'pascal-case';
-import { generateTypeOrmEntity } from './entity.generator';
+import {
+  generateTypeOrmEntity,
+  generateTypeOrmEntityName,
+} from './entity.generator';
 import {
   Config,
   ContractDetails,
@@ -16,6 +19,7 @@ import {
 } from '../types';
 import { TypeOrmGenerator } from './generator.interface';
 import { TypeOrmBlockchainEntityGenerator } from './blockchain-entity.generator';
+import { writeFileToLint } from '../utils/lint';
 
 /**
  * Generator for creating TypeORM entities from smart contract events.
@@ -269,7 +273,7 @@ export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
     const blockchainEntity = blockchainEntityGenerator.generate();
 
     // Generate base blockchain event entity
-    fs.writeFileSync(
+    writeFileToLint(
       path.join(entitiesPath, 'BlockchainEventEntity.ts'),
       blockchainEntity,
     );
@@ -277,34 +281,24 @@ export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
     // Generate specific event entities
     for (const contract of contracts) {
       for (const event of contract.events) {
-        this.generateEventEntity(event, contract.contractName, entitiesPath);
+        const { eventName, compressedTopic, inputs } = event;
+
+        const entityName = generateTypeOrmEntityName(
+          eventName,
+          compressedTopic,
+        );
+
+        const typeOrmEntity = generateTypeOrmEntity(
+          eventName,
+          compressedTopic,
+          inputs,
+        );
+
+        writeFileToLint(
+          path.join(entitiesPath, `${entityName}.ts`),
+          typeOrmEntity,
+        );
       }
     }
-  }
-
-  /**
-   * Generates a single event entity file
-   * @param event Event details
-   * @param contractName Name of the contract
-   * @param entitiesPath Output path for entities
-   * @private
-   */
-  private generateEventEntity(
-    event: ContractEventDetails,
-    contractName: string,
-    entitiesPath: string,
-  ): void {
-    const { eventName, compressedTopic, inputs } = event;
-    const entityName = `${pascalCase(eventName)}Entity_${compressedTopic}`;
-
-    const typeOrmEntity = generateTypeOrmEntity(
-      eventName,
-      compressedTopic,
-      inputs,
-    );
-    fs.writeFileSync(
-      path.join(entitiesPath, `${entityName}.ts`),
-      typeOrmEntity,
-    );
   }
 }

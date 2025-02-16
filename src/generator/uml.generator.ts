@@ -5,7 +5,7 @@ import { TypeOrmGenerator } from './generator.interface';
 
 // Run the docker-compose to bring up plantuml and postgres which is required for this script to run
 export class TypeOrmUmlGenerator implements TypeOrmGenerator {
-  public generate(config: Config): void {
+  public generate(): void {
     // TODO: namingStrategy: new SnakeNamingStrategy(),
     const configPath = join(__dirname, './ormconfig.json');
 

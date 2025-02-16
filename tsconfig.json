@@ -19,6 +19,8 @@
     "usage",
     "test",
     "output",
-    "**/*.spec.ts"
+    "expected_output",
+    "**/*.spec.ts",
+    "artifacts"
   ]
 }

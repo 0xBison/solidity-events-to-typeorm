@@ -8,6 +8,7 @@ import { existsSync, writeFileSync } from 'fs';
 import mkdirp from 'mkdirp';
 import { getTypeDetails, TypeDetails } from '../utils/getTypeDetails';
 import { generateWarning } from '../utils/generateWarning';
+import { writeFileToLint } from '../utils/lint';
 
 export function generateWarningAndImports(): string {
   return `${generateWarning()}\nimport { Column, Entity, JoinColumn, OneToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn, DeleteDateColumn, Index } from "typeorm";
@@ -17,49 +18,47 @@ import { BlockchainEventEntity } from "./BlockchainEventEntity";
 `;
 }
 
-function storeChildEntities(childEntities: string[]): void {
+function storeChildEntity(childEntity: string): void {
   // TODO: Does this work for unlimited levels deep?
   // TODO: Dont hardcode this path
   const entitiesOutputPath = '../output/entities/';
 
-  for (let childEntity of childEntities) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const entityName = childEntity.match(/[^\s]+Entity_[^\s]+/)![0];
-    const entityFilePath = path.join(entitiesOutputPath, `${entityName}.ts`);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const entityName = childEntity.match(/[^\s]+Entity_[^\s]+/)![0];
+  const entityFilePath = path.join(entitiesOutputPath, `${entityName}.ts`);
 
-    const entitiesToImport: Set<string> = new Set();
+  const entitiesToImport: Set<string> = new Set();
 
-    const allEntities = childEntity.matchAll(
-      /[^\s]+Entity_[^\s|^;|^,|^)|^[]+/g,
-    );
-    for (const entity of allEntities) {
-      entitiesToImport.add(entity[0]);
-    }
-
-    // No need to import the entity being declared
-    entitiesToImport.delete(entityName);
-
-    let entitiesImportStatements = `*/\n`;
-    for (const entity of entitiesToImport) {
-      entitiesImportStatements = entitiesImportStatements.concat(
-        `import { ${entity} } from "./${entity}";\n`,
-      );
-    }
-
-    childEntity = childEntity.replace('*/\n', entitiesImportStatements);
-
-    if (!existsSync(entitiesOutputPath)) {
-      mkdirp.sync(entitiesOutputPath);
-    }
-
-    writeFileSync(entityFilePath, childEntity);
+  const allEntities = childEntity.matchAll(/[^\s]+Entity_[^\s|^;|^,|^)|^[]+/g);
+  for (const entity of allEntities) {
+    entitiesToImport.add(entity[0]);
   }
+
+  // No need to import the entity being declared
+  entitiesToImport.delete(entityName);
+
+  let entitiesImportStatements = `*/\n`;
+  for (const entity of entitiesToImport) {
+    entitiesImportStatements = entitiesImportStatements.concat(
+      `import { ${entity} } from "./${entity}";\n`,
+    );
+  }
+
+  childEntity = childEntity.replace('*/\n', entitiesImportStatements);
+
+  if (!existsSync(entitiesOutputPath)) {
+    mkdirp.sync(entitiesOutputPath);
+  }
+
+  writeFileToLint(entityFilePath, childEntity);
 }
 
-const generateTableName = (entityName: string, compressedTopic: string) =>
-  `${snakeCase(entityName)}_${compressedTopic}`;
+export const generateTableName = (
+  entityName: string,
+  compressedTopic: string,
+) => `${snakeCase(entityName)}_${compressedTopic}`;
 
-const generateTypeOrmEntityName = (
+export const generateTypeOrmEntityName = (
   entityName: string,
   compressedTopic: string,
 ) => `${pascalCase(entityName)}Entity_${compressedTopic}`;
@@ -139,7 +138,6 @@ function paramsToTypeOrmColumns(
   params: ParamType[],
   compressedTopic: string,
   typeOrmEntityName: string,
-  childEntities: string[],
   parentEntityName?: string,
 ): string {
   let output = ``;
@@ -177,7 +175,7 @@ function paramsToTypeOrmColumns(
         ];
       }
 
-      childEntities.push(
+      storeChildEntity(
         generateTypeOrmEntity(
           paramName,
           compressedTopic,
@@ -234,7 +232,6 @@ export function generateTypeOrmEntity(
     compressedTopic,
   );
   const camelCaseEntityName = camelcase(`${entityName}`);
-  const childEntities: string[] = [];
 
   let output = ``;
 
@@ -245,6 +242,7 @@ export function generateTypeOrmEntity(
   output += `@Entity({ name: "${tableName}" })\nexport class ${typeOrmEntityName} ${
     !parentEntityName ? 'extends BlockchainEventEntity ' : ''
   }{\n`;
+
   // if child then add auto increment id
   if (parentEntityName) {
     output += `  @PrimaryGeneratedColumn("increment")\n  public id: string;\n\n`;
@@ -255,11 +253,8 @@ export function generateTypeOrmEntity(
     inputs,
     compressedTopic,
     camelCaseEntityName,
-    childEntities,
     parentEntityName,
   )}`;
-
-  storeChildEntities(childEntities);
 
   if (!parentEntityName) {
     const hashedEntityName = output.match(/[^\s]+Entity_[^\s]+/)![0];

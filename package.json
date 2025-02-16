@@ -43,9 +43,11 @@
     "prettier": "^2.7.1",
     "solidity-event-test-suite": "^0.0.4",
     "ts-jest": "^29.1.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@types/eslint": "^9.6.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "ethers": "^5.7.2",
     "glob": "^7.2.3",
     "mkdirp": "^1.0.4",
@@ -54,5 +56,8 @@
     "typeorm": "^0.3.20",
     "typeorm-uml": "^1.6.5",
     "xxhash-wasm": "^1.0.1"
+  },
+  "overrides": {
+    "typeorm": "^0.3.20"
   }
 }

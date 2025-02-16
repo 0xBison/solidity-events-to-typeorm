@@ -4,6 +4,7 @@ import { TypeOrmEntitiesGenerator } from './generator/entities.generator';
 import { TypeOrmIndexGenerator } from './generator/index.generator';
 import { TypeOrmUmlGenerator } from './generator/uml.generator';
 import * as fs from 'fs';
+import { lintFiles } from './utils/lint';
 
 export async function generateTypeOrmFiles(config: Config): Promise<void> {
   // Clear existing output
@@ -23,4 +24,6 @@ export async function generateTypeOrmFiles(config: Config): Promise<void> {
 
   // const umlGenerator = new TypeOrmUmlGenerator();
   // umlGenerator.generate(config);
+
+  await lintFiles();
 }

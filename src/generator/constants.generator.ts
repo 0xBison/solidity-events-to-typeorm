@@ -3,6 +3,7 @@ import { Config } from '../types';
 import * as fs from 'fs';
 import { generateWarning } from '../utils/generateWarning';
 import { TypeOrmGenerator } from './generator.interface';
+import { writeFileToLint } from '../utils/lint';
 
 /**
  * Generator class that creates TypeORM-compatible constant definitions for numeric and bytes types.
@@ -18,7 +19,7 @@ export class TypeOrmConstantsGenerator implements TypeOrmGenerator {
     const constants = this.generateConstants();
     const constantsFilePath = `${config.output.path}/constants.ts`;
 
-    fs.writeFileSync(constantsFilePath, `${generateWarning()}\n`);
+    writeFileToLint(constantsFilePath, `${generateWarning()}\n`);
     fs.appendFileSync(constantsFilePath, constants);
   }
 
