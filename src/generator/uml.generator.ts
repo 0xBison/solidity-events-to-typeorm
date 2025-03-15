@@ -1,10 +1,10 @@
 import { EOL } from 'os';
 import { join } from 'path';
 import { Direction, Flags, Format, TypeormUml } from 'typeorm-uml';
-import { TypeOrmGenerator } from './generator.interface';
+import { BaseTypeOrmGenerator } from './generator.interface';
 
 // Run the docker-compose to bring up plantuml and postgres which is required for this script to run
-export class TypeOrmUmlGenerator implements TypeOrmGenerator {
+export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
   public generate(): void {
     // TODO: namingStrategy: new SnakeNamingStrategy(),
     const configPath = join(__dirname, './ormconfig.json');

@@ -1,5 +1,6 @@
 import { JsonFragment, ParamType } from '@ethersproject/abi';
-import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+
+export type ABI = JsonFragment[];
 
 export interface ContractEventDetails {
   eventName: string;
@@ -9,7 +10,7 @@ export interface ContractEventDetails {
 }
 
 export interface ContractInfo {
-  abi: JsonFragment[];
+  abi: ABI;
   contractName: string;
 }
 
@@ -31,8 +32,10 @@ export interface Config {
     eventTopicList: string; // New: Path for event topic list output
   };
   artifacts: {
-    include: string[];
-    exclude: string[];
+    includePaths: string[];
+    excludePaths: string[];
+    contractArtifacts: ContractInfo[];
+    filterEvents?: (contract: ContractInfo) => ContractInfo;
   };
   contractMappings?: {
     [originalContract: string]: string[];

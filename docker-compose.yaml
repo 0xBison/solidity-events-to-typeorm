@@ -1,0 +1,14 @@
+version: '3'
+services:
+  plantuml:
+    image: 'plantuml/plantuml-server:latest'
+    ports:
+      - '8080:8080'
+  postgres:
+      image: postgres:14.2
+      environment:
+          - POSTGRES_USER=api
+          - POSTGRES_PASSWORD=api
+          - POSTGRES_DB=api
+      ports:
+          - '5432:5432'

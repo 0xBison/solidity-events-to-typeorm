@@ -2,25 +2,31 @@ import { ethers } from 'ethers';
 import { Config } from '../types';
 import * as fs from 'fs';
 import { generateWarning } from '../utils/generateWarning';
-import { TypeOrmGenerator } from './generator.interface';
+import { BaseTypeOrmGenerator } from './generator.interface';
 import { writeFileToLint } from '../utils/lint';
+import chalk from 'chalk';
+import path from 'path';
 
 /**
  * Generator class that creates TypeORM-compatible constant definitions for numeric and bytes types.
  * These constants define the maximum values and digit lengths for different integer sizes,
  * as well as the maximum lengths for different bytes sizes used in Ethereum/Solidity.
  */
-export class TypeOrmConstantsGenerator implements TypeOrmGenerator {
+export class TypeOrmConstantsGenerator extends BaseTypeOrmGenerator {
   /**
    * Generates constant definitions and writes them to a file.
    * @param config - Configuration object containing output path and other settings
    */
   public generate(config: Config): void {
+    console.log(chalk.blue('Constants generating...'));
+
     const constants = this.generateConstants();
-    const constantsFilePath = `${config.output.path}/constants.ts`;
+    const constantsFilePath = path.resolve(config.output.path, 'constants.ts');
 
     writeFileToLint(constantsFilePath, `${generateWarning()}\n`);
     fs.appendFileSync(constantsFilePath, constants);
+
+    console.log(chalk.green('Constants generated successfully'));
   }
 
   /**

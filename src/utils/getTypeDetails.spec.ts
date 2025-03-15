@@ -107,7 +107,17 @@ const testType = (type: string, expectedResult: TypeDetails) => {
 
   const typeDetails = getTypeDetails(ethers.utils.ParamType.from(components));
 
-  expect(typeDetails).to.deep.eq(expectedResult);
+  // Create a formatted output string for better readability
+  const outputStr = JSON.stringify(expectedResult, null, 2)
+    .replace(/\n\s*/g, ' ') // Replace newlines and indentation with spaces
+    .replace(/[{}"]/g, '') // Remove braces and quotes
+    .replace(/,/g, ', '); // Add space after commas
+
+  // Use a more descriptive test name that includes input and expected output
+  expect(typeDetails).to.deep.eq(
+    expectedResult,
+    `Input: ${type} should produce: ${outputStr}`,
+  );
 };
 
 describe('getTypeDetails tests', () => {
@@ -118,27 +128,44 @@ describe('getTypeDetails tests', () => {
       describe(`uint ${getArrayType(arraySize)} tests`, () => {
         const tests = createVariableTypeTests('uint', arraySize, 8, 256);
         tests.forEach((test) => {
-          it(`${test.fullType}`, () => {
+          // Format the expected output for better readability in test name
+          const outputStr = JSON.stringify(test)
+            .replace(/[{}"]/g, '')
+            .replace(/,/g, ', ');
+
+          it(`Input: ${test.fullType} → Output: ${outputStr}`, () => {
             testType(test.fullType, test);
           });
         });
       });
+
+      // Apply the same pattern to other test blocks
       describe(`int ${getArrayType(arraySize)} tests`, () => {
         const tests = createVariableTypeTests('int', arraySize, 8, 256);
         tests.forEach((test) => {
-          it(`${test.fullType}`, () => {
+          const outputStr = JSON.stringify(test)
+            .replace(/[{}"]/g, '')
+            .replace(/,/g, ', ');
+
+          it(`Input: ${test.fullType} → Output: ${outputStr}`, () => {
             testType(test.fullType, test);
           });
         });
       });
+
       describe(`bytes ${getArrayType(arraySize)} tests`, () => {
         const tests = createVariableTypeTests('bytes', arraySize, 1, 32);
         tests.forEach((test) => {
-          it(`${test.fullType}`, () => {
+          const outputStr = JSON.stringify(test)
+            .replace(/[{}"]/g, '')
+            .replace(/,/g, ', ');
+
+          it(`Input: ${test.fullType} → Output: ${outputStr}`, () => {
             testType(test.fullType, test);
           });
         });
       });
+
       describe(`non sized primitive types and tuple ${getArrayType(
         arraySize,
       )} tests`, () => {
@@ -153,7 +180,12 @@ describe('getTypeDetails tests', () => {
         ]) {
           const fullType = `${type}${getTypeStringArraySuffix(arraySize)}`;
           const testValues = createTypeDetails(fullType, type, arraySize);
-          it(`${testValues.fullType}`, () => {
+
+          const outputStr = JSON.stringify(testValues)
+            .replace(/[{}"]/g, '')
+            .replace(/,/g, ', ');
+
+          it(`Input: ${fullType} → Output: ${outputStr}`, () => {
             testType(fullType, testValues);
           });
         }

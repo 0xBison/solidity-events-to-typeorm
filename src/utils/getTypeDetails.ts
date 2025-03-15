@@ -7,19 +7,74 @@ export interface TypeDetails {
   typeSize?: string; // 8
 }
 
-// tuple
-// tuple[2]
-// uint64[3]
-// uint64
-// firstly check if there is [] and make sure its there at most once. if more than once throw error
-// if it is a tuple, we need to flatten the fields in memory - fields[]
-// if it is an array then we need to check if its a dynamic array - bool dynamicArray
-// for dynamic we store as a separate table
-
 /**
- * Takes in a solidity type and gives back details of that type
- * @param typeName The fully qualified type (e.g. "address", "tuple(address)", "uint256[3][]"
- * @returns {@linkcode TypeDetails} object with details of the type
+ * Parses a Solidity type and extracts detailed information about it
+ *
+ * This function analyzes a Solidity parameter type and returns a structured object
+ * containing information about the type's characteristics including:
+ * - The full type string (e.g. "uint256[]")
+ * - The underlying type (e.g. "uint")
+ * - Whether it's an array and what kind (fixed or dynamic)
+ * - The bit size for types that have sizes (uint/int/bytes)
+ *
+ * @param paramType An ethers.js ParamType object representing a Solidity type
+ * @returns A TypeDetails object with parsed information about the type
+ *
+ * @example
+ * // For a simple type:
+ * // Input: ParamType for "uint256"
+ * // Output: {
+ * //   fullType: "uint256",
+ * //   underlyingType: "uint",
+ * //   arraySize: 0,
+ * //   typeSize: "256"
+ * // }
+ *
+ * @example
+ * // For a dynamic array:
+ * // Input: ParamType for "address[]"
+ * // Output: {
+ * //   fullType: "address[]",
+ * //   underlyingType: "address",
+ * //   arraySize: -1
+ * // }
+ *
+ * @example
+ * // For a fixed-size array:
+ * // Input: ParamType for "bytes32[2]"
+ * // Output: {
+ * //   fullType: "bytes32[2]",
+ * //   underlyingType: "bytes",
+ * //   arraySize: 2,
+ * //   typeSize: "32"
+ * // }
+ *
+ * @example
+ * // For a tuple:
+ * // Input: ParamType for "tuple"
+ * // Output: {
+ * //   fullType: "tuple",
+ * //   underlyingType: "tuple",
+ * //   arraySize: 0
+ * // }
+ *
+ * @example
+ * // For a fixed-size array of tuples:
+ * // Input: ParamType for "tuple[2]"
+ * // Output: {
+ * //   fullType: "tuple[2]",
+ * //   underlyingType: "tuple",
+ * //   arraySize: 2
+ * // }
+ *
+ * @example
+ * // For a dynamic array of tuples:
+ * // Input: ParamType for "tuple[]"
+ * // Output: {
+ * //   fullType: "tuple[]",
+ * //   underlyingType: "tuple",
+ * //   arraySize: -1
+ * // }
  */
 export function getTypeDetails(paramType: ParamType): TypeDetails {
   const { type } = paramType;

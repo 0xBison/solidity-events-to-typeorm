@@ -5,7 +5,6 @@ import { glob } from 'glob';
 import { ethers } from 'ethers';
 import xxhash, { XXHashAPI } from 'xxhash-wasm';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
-import { pascalCase } from 'pascal-case';
 import {
   generateTypeOrmEntity,
   generateTypeOrmEntityName,
@@ -17,15 +16,15 @@ import {
   ContractInfo,
   TopicDetails,
 } from '../types';
-import { TypeOrmGenerator } from './generator.interface';
-import { TypeOrmBlockchainEntityGenerator } from './blockchain-entity.generator';
+import { BaseTypeOrmGenerator } from './generator.interface';
 import { writeFileToLint } from '../utils/lint';
+import chalk from 'chalk';
 
 /**
  * Generator for creating TypeORM entities from smart contract events.
  * Processes contract ABIs and generates corresponding entity classes.
  */
-export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
+export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
   private xxHashInstance: XXHashAPI | null = null;
 
   /**
@@ -41,6 +40,8 @@ export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
    * @param config Configuration object containing paths and settings
    */
   public generate(config: Config): void {
+    console.log(chalk.blue('Entities generating...'));
+
     if (!this.xxHashInstance) {
       throw new Error('Generator not initialized. Call initialize() first.');
     }
@@ -50,6 +51,8 @@ export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
     const contracts = this.processArtifacts(artifactPaths, config);
 
     this.generateEntities(contracts, entitiesPath);
+
+    console.log(chalk.green('Entities generated successfully'));
   }
 
   // File Processing Methods
@@ -60,8 +63,8 @@ export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
    * @private
    */
   private getArtifactPaths(config: Config): string[] {
-    return glob.sync(`{${config.artifacts.include.join(',')}}`, {
-      ignore: config.artifacts.exclude,
+    return glob.sync(`{${config.artifacts.includePaths.join(',')}}`, {
+      ignore: config.artifacts.excludePaths,
     });
   }
 
@@ -99,17 +102,36 @@ export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
     const topicsToContracts = new Map<string, TopicDetails>();
     const contracts: ContractDetails[] = [];
 
+    // initialize this to the contract artifacts provided
+    const contractsToProcess: ContractInfo[] =
+      config.artifacts.contractArtifacts;
+
+    // load any additional contract artifacts from the artifact paths
     for (const artifactPath of artifactPaths) {
       const contractInfo = this.getContractInfoFromPath(artifactPath);
+      contractsToProcess.push(contractInfo);
+    }
+
+    // process each contract artifact
+    for (const contractInfo of contractsToProcess) {
+      // filter out events if specified
+      const filteredContractInfo = config.artifacts.filterEvents
+        ? config.artifacts.filterEvents(contractInfo)
+        : contractInfo;
+
       const contractDetails = this.processContractABI(
-        contractInfo,
+        filteredContractInfo,
         topicsToContracts,
         config,
       );
+
       contracts.push(contractDetails);
     }
 
     this.writeTopicList(topicsToContracts, config);
+
+    console.log(chalk.green('Topic list written successfully'));
+
     return contracts;
   }
 
@@ -267,36 +289,36 @@ export class TypeOrmEntitiesGenerator implements TypeOrmGenerator {
     contracts: ContractDetails[],
     entitiesPath: string,
   ): void {
-    mkdirp.sync(entitiesPath);
-
-    const blockchainEntityGenerator = new TypeOrmBlockchainEntityGenerator();
-    const blockchainEntity = blockchainEntityGenerator.generate();
-
-    // Generate base blockchain event entity
-    writeFileToLint(
-      path.join(entitiesPath, 'BlockchainEventEntity.ts'),
-      blockchainEntity,
-    );
-
-    // Generate specific event entities
+    // For each contract event
     for (const contract of contracts) {
       for (const event of contract.events) {
-        const { eventName, compressedTopic, inputs } = event;
+        console.log(
+          `${contract.contractName} ${event.eventName} entity generating...`,
+        );
 
+        // Now pass the entitiesPath to generateTypeOrmEntity
+        const entity = generateTypeOrmEntity(
+          event.eventName,
+          event.compressedTopic,
+          event.inputs,
+          undefined, // parent entity name
+          undefined, // is array
+          entitiesPath, // pass the entities path
+        );
+
+        // Write the entity file
         const entityName = generateTypeOrmEntityName(
-          eventName,
-          compressedTopic,
+          event.eventName,
+          event.compressedTopic,
         );
+        const entityFilePath = path.join(entitiesPath, `${entityName}.ts`);
 
-        const typeOrmEntity = generateTypeOrmEntity(
-          eventName,
-          compressedTopic,
-          inputs,
-        );
+        writeFileToLint(entityFilePath, entity);
 
-        writeFileToLint(
-          path.join(entitiesPath, `${entityName}.ts`),
-          typeOrmEntity,
+        console.log(
+          chalk.green(
+            `${contract.contractName} ${event.eventName} entity generated successfully`,
+          ),
         );
       }
     }

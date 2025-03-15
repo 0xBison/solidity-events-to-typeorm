@@ -1,8 +1,18 @@
-import { TypeOrmGenerator } from './generator.interface';
+import chalk from 'chalk';
+import { BaseTypeOrmGenerator } from './generator.interface';
+import mkdirp from 'mkdirp';
+import path from 'path';
+import { Config } from '../types';
+import { writeFileToLint } from '../utils/lint';
 
-export class TypeOrmBlockchainEntityGenerator implements TypeOrmGenerator {
-  generate(): string {
-    return `import { BeforeInsert, Column, CreateDateColumn, PrimaryColumn } from 'typeorm';
+export class TypeOrmBlockchainEntityGenerator extends BaseTypeOrmGenerator {
+  generate(config: Config): void {
+    console.log(chalk.blue('BlockchainEventEntity generating...'));
+
+    const entitiesPath = path.join(config.output.path, config.output.entities);
+    mkdirp.sync(entitiesPath);
+
+    const blockchainEntity = `import { BeforeInsert, Column, CreateDateColumn, PrimaryColumn } from 'typeorm';
 import * as crypto from 'crypto';
 import * as constants from '../constants';
 
@@ -45,7 +55,7 @@ export abstract class BlockchainEventEntity {
   })
   public eventOriginAddress: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_date', type: 'timestamptz', nullable: false })
   createdDate: Date;
 
   @Column({
@@ -116,5 +126,13 @@ export abstract class BlockchainEventEntity {
   // You can set this to override the auto-generated uniqueEventId
   public uniqueEventIdOverride?: string;
 }`;
+
+    // Generate base blockchain event entity
+    writeFileToLint(
+      path.resolve(entitiesPath, 'BlockchainEventEntity.ts'),
+      blockchainEntity,
+    );
+
+    console.log(chalk.green('BlockchainEventEntity generated successfully'));
   }
 }

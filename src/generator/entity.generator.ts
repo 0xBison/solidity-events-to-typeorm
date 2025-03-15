@@ -4,11 +4,26 @@ import { pascalCase } from 'pascal-case';
 import camelcase from 'camelcase';
 import { ethers } from 'ethers';
 import path from 'path/posix';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync } from 'fs';
 import mkdirp from 'mkdirp';
 import { getTypeDetails, TypeDetails } from '../utils/getTypeDetails';
 import { generateWarning } from '../utils/generateWarning';
 import { writeFileToLint } from '../utils/lint';
+import chalk from 'chalk';
+import { Config } from '../types';
+
+let normalizedEntitiesPath: string | null = null;
+
+export function setEntitiesOutputPath(config: Config): void {
+  normalizedEntitiesPath = path.join(
+    config.output.path,
+    config.output.entities,
+  );
+
+  if (!existsSync(normalizedEntitiesPath)) {
+    mkdirp.sync(normalizedEntitiesPath);
+  }
+}
 
 export function generateWarningAndImports(): string {
   return `${generateWarning()}\nimport { Column, Entity, JoinColumn, OneToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn, DeleteDateColumn, Index } from "typeorm";
@@ -18,14 +33,20 @@ import { BlockchainEventEntity } from "./BlockchainEventEntity";
 `;
 }
 
-function storeChildEntity(childEntity: string): void {
-  // TODO: Does this work for unlimited levels deep?
-  // TODO: Dont hardcode this path
-  const entitiesOutputPath = '../output/entities/';
+function storeChildEntity(
+  childEntity: string,
+  entitiesOutputPath: string,
+): void {
+  // No more global variable, use the parameter directly
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const entityName = childEntity.match(/[^\s]+Entity_[^\s]+/)![0];
-  const entityFilePath = path.join(entitiesOutputPath, `${entityName}.ts`);
+  const entityFilePath = path.resolve(entitiesOutputPath, `${entityName}.ts`);
+
+  // Ensure the directory exists
+  if (!existsSync(entitiesOutputPath)) {
+    mkdirp.sync(entitiesOutputPath);
+  }
 
   const entitiesToImport: Set<string> = new Set();
 
@@ -46,9 +67,7 @@ function storeChildEntity(childEntity: string): void {
 
   childEntity = childEntity.replace('*/\n', entitiesImportStatements);
 
-  if (!existsSync(entitiesOutputPath)) {
-    mkdirp.sync(entitiesOutputPath);
-  }
+  console.log('entityFilePath', entityFilePath);
 
   writeFileToLint(entityFilePath, childEntity);
 }
@@ -139,15 +158,19 @@ function paramsToTypeOrmColumns(
   compressedTopic: string,
   typeOrmEntityName: string,
   parentEntityName?: string,
+  entitiesOutputPath?: string,
 ): string {
   let output = ``;
 
   for (const param of params) {
+    // firstly check if there is [] and make sure its there at most once. if more than once throw error
+    // if it is a tuple, we need to flatten the fields in memory - fields[]
+    // if it is an array then we need to check if its a dynamic array - bool dynamicArray
+    // for dynamic we store as a separate table
     const fieldInfo: TypeDetails = getTypeDetails(param);
     const paramName = camelcase(param.name);
 
     if (fieldInfo.underlyingType === 'tuple' || fieldInfo.arraySize !== 0) {
-      // TODO: Cater for arrays...
       const isArray = fieldInfo.arraySize !== 0;
 
       output += generateChildEntityRelation(
@@ -175,14 +198,23 @@ function paramsToTypeOrmColumns(
         ];
       }
 
-      storeChildEntity(
-        generateTypeOrmEntity(
-          paramName,
-          compressedTopic,
-          paramComponents,
-          typeOrmEntityName,
-          isArray,
-        ),
+      console.log(chalk.blue(`- Child Entity: ${paramName} generating...`));
+
+      const childEntity = generateTypeOrmEntity(
+        paramName,
+        compressedTopic,
+        paramComponents,
+        typeOrmEntityName,
+        isArray,
+        entitiesOutputPath,
+      );
+
+      if (entitiesOutputPath) {
+        storeChildEntity(childEntity, entitiesOutputPath);
+      }
+
+      console.log(
+        chalk.green(`- Child Entity: ${paramName} generated successfully`),
       );
     } else {
       output += generateTypeOrmColumn(
@@ -225,6 +257,7 @@ export function generateTypeOrmEntity(
   inputs: Array<ParamType>,
   parentEntityName?: string,
   isArray?: boolean,
+  entitiesOutputPath?: string,
 ): string {
   const tableName = generateTableName(entityName, compressedTopic);
   const typeOrmEntityName = generateTypeOrmEntityName(
@@ -254,6 +287,7 @@ export function generateTypeOrmEntity(
     compressedTopic,
     camelCaseEntityName,
     parentEntityName,
+    entitiesOutputPath,
   )}`;
 
   if (!parentEntityName) {

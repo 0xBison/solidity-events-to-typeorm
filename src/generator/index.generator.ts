@@ -3,10 +3,13 @@ import path from 'path';
 import glob from 'glob';
 import { generateWarning } from '../utils/generateWarning';
 import { Config } from '../types';
-import { TypeOrmGenerator } from './generator.interface';
+import { BaseTypeOrmGenerator, TypeOrmGenerator } from './generator.interface';
+import chalk from 'chalk';
 
-export class TypeOrmIndexGenerator implements TypeOrmGenerator {
+export class TypeOrmIndexGenerator extends BaseTypeOrmGenerator {
   public generate(config: Config): void {
+    console.log(chalk.blue('Index file generating...'));
+
     const entitiesPath = path.join(config.output.path, 'entities');
     const entities = glob.sync(path.join(entitiesPath, '**.ts'));
 
@@ -26,5 +29,7 @@ export class TypeOrmIndexGenerator implements TypeOrmGenerator {
     const indexFileContents = `${generateWarning()}\n${entitiesIndexContents}\n`;
 
     writeFileSync(path.join(entitiesPath, 'index.ts'), indexFileContents);
+
+    console.log(chalk.green('Index file generated successfully'));
   }
 }

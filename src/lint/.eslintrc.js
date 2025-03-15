@@ -1,7 +1,8 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    sourceType: 'module',
+    // sourceType: 'module',
+    project: null,
   },
   plugins: ['@typescript-eslint/eslint-plugin', 'unused-imports'],
   extends: [
@@ -35,6 +36,7 @@ module.exports = {
       {
         endOfLine: 'auto',
       },
+      { singleQuote: true },
     ],
     'lines-between-class-members': ['error', 'always'],
   },
