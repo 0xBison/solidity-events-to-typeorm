@@ -5,6 +5,7 @@ import path from 'path';
 import fetch from 'node-fetch';
 import { Config } from '../types';
 import chalk from 'chalk';
+import { logMessage } from '../utils/loggingUtils';
 
 const typeormUml = new TypeormUml();
 
@@ -135,7 +136,7 @@ export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
       const response = await fetch(url);
       const buffer = await response.buffer();
       fs.writeFileSync(outputPath, buffer);
-      console.log(chalk.green('Diagram saved to:', outputPath));
+      logMessage(chalk.green('Diagram saved to:', outputPath));
     } catch (error) {
       console.error('Error generating UML:', error);
     }

@@ -6,6 +6,7 @@ import { BaseTypeOrmGenerator } from './generator.interface';
 import { writeFileToLint } from '../utils/lint';
 import chalk from 'chalk';
 import path from 'path';
+import { logMessage } from '../utils/loggingUtils';
 
 /**
  * Generator class that creates TypeORM-compatible constant definitions for numeric and bytes types.
@@ -18,7 +19,7 @@ export class TypeOrmConstantsGenerator extends BaseTypeOrmGenerator {
    * @param config - Configuration object containing output path and other settings
    */
   public generate(config: Config): void {
-    console.log(chalk.blue('Constants generating...'));
+    logMessage(chalk.blue('Constants generating...'));
 
     const constants = this.generateConstants();
     const constantsFilePath = path.resolve(config.output.path, 'constants.ts');
@@ -26,7 +27,7 @@ export class TypeOrmConstantsGenerator extends BaseTypeOrmGenerator {
     writeFileToLint(constantsFilePath, `${generateWarning()}\n`);
     fs.appendFileSync(constantsFilePath, constants);
 
-    console.log(chalk.green('Constants generated successfully'));
+    logMessage(chalk.green('Constants generated successfully'));
   }
 
   /**

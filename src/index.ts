@@ -8,13 +8,18 @@ import { lintFiles } from './utils/lint';
 import { TypeOrmBlockchainEntityGenerator } from './generator/blockchain-entity.generator';
 import { normalizeConfigPaths } from './utils/pathUtils';
 import { TypeOrmMigrationGenerator } from './generator/migration.generator';
+import { logMessage } from './utils/loggingUtils';
 
 export async function generateTypeOrmFiles(config: Config): Promise<void> {
+  if (config.enableLogging) {
+    process.env.LOGGING_ENABLED = 'true';
+  }
+
   // Normalize all paths to be absolute relative to project root
   const normalizedConfig = normalizeConfigPaths(config);
 
   // Log the resolved output path
-  console.log(`Files will be created at: ${normalizedConfig.output.path}`);
+  logMessage(`Files will be created at: ${normalizedConfig.output.path}`);
 
   // Clear existing output
   if (fs.existsSync(normalizedConfig.output.path)) {

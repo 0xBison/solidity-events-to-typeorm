@@ -54,4 +54,5 @@ export interface Config {
     // TypeORM specific settings
     namingStrategy?: string;
   };
+  enableLogging?: boolean;
 }

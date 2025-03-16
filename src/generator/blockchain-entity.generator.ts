@@ -4,10 +4,11 @@ import mkdirp from 'mkdirp';
 import path from 'path';
 import { Config } from '../types';
 import { writeFileToLint } from '../utils/lint';
+import { logMessage } from '../utils/loggingUtils';
 
 export class TypeOrmBlockchainEntityGenerator extends BaseTypeOrmGenerator {
   generate(config: Config): void {
-    console.log(chalk.blue('BlockchainEventEntity generating...'));
+    logMessage('BlockchainEventEntity generating...');
 
     const entitiesPath = path.join(config.output.path, config.output.entities);
     mkdirp.sync(entitiesPath);
@@ -133,6 +134,6 @@ export abstract class BlockchainEventEntity {
       blockchainEntity,
     );
 
-    console.log(chalk.green('BlockchainEventEntity generated successfully'));
+    logMessage(chalk.green('BlockchainEventEntity generated successfully'));
   }
 }

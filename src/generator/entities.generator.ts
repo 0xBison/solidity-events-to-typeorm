@@ -19,6 +19,7 @@ import {
 import { BaseTypeOrmGenerator } from './generator.interface';
 import { writeFileToLint } from '../utils/lint';
 import chalk from 'chalk';
+import { logMessage } from '../utils/loggingUtils';
 
 /**
  * Generator for creating TypeORM entities from smart contract events.
@@ -40,7 +41,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
    * @param config Configuration object containing paths and settings
    */
   public generate(config: Config): void {
-    console.log(chalk.blue('Entities generating...'));
+    logMessage(chalk.blue('Entities generating...'));
 
     if (!this.xxHashInstance) {
       throw new Error('Generator not initialized. Call initialize() first.');
@@ -52,7 +53,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
 
     this.generateEntities(contracts, entitiesPath);
 
-    console.log(chalk.green('Entities generated successfully'));
+    logMessage(chalk.green('Entities generated successfully'));
   }
 
   // File Processing Methods
@@ -130,7 +131,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
 
     this.writeTopicList(topicsToContracts, config);
 
-    console.log(chalk.green('Topic list written successfully'));
+    logMessage(chalk.green('Topic list written successfully'));
 
     return contracts;
   }
@@ -292,7 +293,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
     // For each contract event
     for (const contract of contracts) {
       for (const event of contract.events) {
-        console.log(
+        logMessage(
           `${contract.contractName} ${event.eventName} entity generating...`,
         );
 
@@ -315,7 +316,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
 
         writeFileToLint(entityFilePath, entity);
 
-        console.log(
+        logMessage(
           chalk.green(
             `${contract.contractName} ${event.eventName} entity generated successfully`,
           ),

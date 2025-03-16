@@ -6,6 +6,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { BaseTypeOrmGenerator } from './generator.interface';
 import { Config } from '../types';
 import chalk from 'chalk';
+import { logMessage } from '../utils/loggingUtils';
 
 export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
   public async generate(config: Config): Promise<void> {
@@ -15,7 +16,7 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
     } = config;
 
     if (!migrations) {
-      console.log('No migrations config found');
+      logMessage('No migrations config found');
       return;
     }
 
@@ -50,7 +51,7 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
     // Create a temporary DataSource using PGlite
     const dataSource = new DataSource({
       type: 'postgres', // Use postgres type
-      driver: new PGliteDriver().driver, // Use PGlite driver
+      driver: new PGliteDriver({}).driver, // Use PGlite driver
       synchronize: false,
       logging: false,
       entities: entityPaths,
@@ -126,7 +127,7 @@ ${downQueries
       const filePath = path.join(outputDir, `${timestamp}-${name}.ts`);
       fs.writeFileSync(filePath, content);
 
-      console.log(
+      logMessage(
         chalk.green(`Schema-aware migration generated at: ${filePath}`),
       );
     } finally {

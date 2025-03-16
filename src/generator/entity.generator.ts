@@ -11,6 +11,7 @@ import { generateWarning } from '../utils/generateWarning';
 import { writeFileToLint } from '../utils/lint';
 import chalk from 'chalk';
 import { Config } from '../types';
+import { logMessage } from '../utils/loggingUtils';
 
 let normalizedEntitiesPath: string | null = null;
 
@@ -194,7 +195,7 @@ function paramsToTypeOrmColumns(
         ];
       }
 
-      console.log(chalk.blue(`- Child Entity: ${paramName} generating...`));
+      logMessage(chalk.blue(`- Child Entity: ${paramName} generating...`));
 
       const childEntity = generateTypeOrmEntity(
         paramName,
@@ -209,7 +210,7 @@ function paramsToTypeOrmColumns(
         storeChildEntity(childEntity, entitiesOutputPath);
       }
 
-      console.log(
+      logMessage(
         chalk.green(`- Child Entity: ${paramName} generated successfully`),
       );
     } else {
