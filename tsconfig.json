@@ -12,7 +12,7 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false
   },
-  "include": ["src"],
+  "include": ["src", "example"],
   "exclude": [
     "node_modules",
     "**/__tests__/*",

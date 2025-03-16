@@ -3,7 +3,7 @@ import path from 'path';
 import glob from 'glob';
 import { generateWarning } from '../utils/generateWarning';
 import { Config } from '../types';
-import { BaseTypeOrmGenerator, TypeOrmGenerator } from './generator.interface';
+import { BaseTypeOrmGenerator } from './generator.interface';
 import chalk from 'chalk';
 
 export class TypeOrmIndexGenerator extends BaseTypeOrmGenerator {

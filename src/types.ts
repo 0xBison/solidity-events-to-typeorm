@@ -31,6 +31,15 @@ export interface Config {
     abis: string; // New: Path for ABI output
     eventTopicList: string; // New: Path for event topic list output
   };
+  docs?: {
+    path: string;
+    plantUmlServer?: string;
+  };
+  migrations?: {
+    path: string;
+    migrationName: string;
+    schemaName: string;
+  };
   artifacts: {
     includePaths: string[];
     excludePaths: string[];

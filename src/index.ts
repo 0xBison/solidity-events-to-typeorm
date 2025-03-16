@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import { lintFiles } from './utils/lint';
 import { TypeOrmBlockchainEntityGenerator } from './generator/blockchain-entity.generator';
 import { normalizeConfigPaths } from './utils/pathUtils';
+import { TypeOrmMigrationGenerator } from './generator/migration.generator';
 
 export async function generateTypeOrmFiles(config: Config): Promise<void> {
   // Normalize all paths to be absolute relative to project root
@@ -33,8 +34,11 @@ export async function generateTypeOrmFiles(config: Config): Promise<void> {
   const indexGenerator = new TypeOrmIndexGenerator();
   indexGenerator.generate(normalizedConfig);
 
-  // const umlGenerator = new TypeOrmUmlGenerator();
-  // umlGenerator.generate(normalizedConfig);
+  const migrationGenerator = new TypeOrmMigrationGenerator();
+  migrationGenerator.generate(normalizedConfig);
+
+  const umlGenerator = new TypeOrmUmlGenerator();
+  umlGenerator.generate(normalizedConfig);
 
   await lintFiles();
 }

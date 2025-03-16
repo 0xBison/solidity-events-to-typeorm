@@ -37,8 +37,6 @@ function storeChildEntity(
   childEntity: string,
   entitiesOutputPath: string,
 ): void {
-  // No more global variable, use the parameter directly
-
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const entityName = childEntity.match(/[^\s]+Entity_[^\s]+/)![0];
   const entityFilePath = path.resolve(entitiesOutputPath, `${entityName}.ts`);
@@ -66,8 +64,6 @@ function storeChildEntity(
   }
 
   childEntity = childEntity.replace('*/\n', entitiesImportStatements);
-
-  console.log('entityFilePath', entityFilePath);
 
   writeFileToLint(entityFilePath, childEntity);
 }
