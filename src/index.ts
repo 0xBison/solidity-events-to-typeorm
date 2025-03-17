@@ -56,7 +56,7 @@ function getConfig(config: TransformedConfig): TransformedConfig {
   return normalizedConfig;
 }
 
-export async function generateTypeOrmFiles(config: Config): Promise<void> {
+export async function generate(config: Config): Promise<void> {
   if (config.enableLogging) {
     process.env.LOGGING_ENABLED = 'true';
   }
