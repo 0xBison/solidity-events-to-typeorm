@@ -10,12 +10,12 @@ import { getTypeDetails, TypeDetails } from '../utils/getTypeDetails';
 import { generateWarning } from '../utils/generateWarning';
 import { writeFileToLint } from '../utils/lint';
 import chalk from 'chalk';
-import { Config } from '../types';
+import { TransformedConfig } from '../types';
 import { logMessage } from '../utils/loggingUtils';
 
 let normalizedEntitiesPath: string | null = null;
 
-export function setEntitiesOutputPath(config: Config): void {
+export function setEntitiesOutputPath(config: TransformedConfig): void {
   normalizedEntitiesPath = path.join(
     config.output.path,
     config.output.entities,

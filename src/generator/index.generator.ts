@@ -2,13 +2,13 @@ import { writeFileSync } from 'fs';
 import path from 'path';
 import glob from 'glob';
 import { generateWarning } from '../utils/generateWarning';
-import { Config } from '../types';
+import { TransformedConfig } from '../types';
 import { BaseTypeOrmGenerator } from './generator.interface';
 import chalk from 'chalk';
 import { logMessage } from '../utils/loggingUtils';
 
 export class TypeOrmIndexGenerator extends BaseTypeOrmGenerator {
-  public generate(config: Config): void {
+  public generate(config: TransformedConfig): void {
     logMessage(chalk.blue('Index file generating...'));
 
     const entitiesPath = path.join(config.output.path, 'entities');

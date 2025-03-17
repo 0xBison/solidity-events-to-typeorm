@@ -24,7 +24,8 @@ export interface TopicDetails {
   contractNames: Array<string>;
 }
 
-export interface Config {
+export interface TransformedConfig {
+  contracts: ContractInfo[];
   output: {
     path: string;
     entities: string;
@@ -39,12 +40,31 @@ export interface Config {
     migrationName: string;
     schemaName: string;
   };
-  artifacts: {
-    contractArtifacts: ContractInfo[];
-    filterEvents?: (contract: ContractInfo) => ContractInfo;
+  enableLogging?: boolean;
+}
+
+export interface Contracts {
+  [key: string]: {
+    abi: ABI;
+    filterEvents?: (abi: ABI) => ABI;
   };
-  contractMappings?: {
-    [originalContract: string]: string[];
+}
+
+export interface Config {
+  contracts: Contracts;
+  output: {
+    path: string;
+    entities: string;
+    abis: string;
+  };
+  docs?: {
+    path: string;
+    plantUmlServer?: string;
+  };
+  migrations?: {
+    path: string;
+    migrationName: string;
+    schemaName: string;
   };
   enableLogging?: boolean;
 }

@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Config } from '../types';
+import { TransformedConfig } from '../types';
 import * as fs from 'fs';
 import { generateWarning } from '../utils/generateWarning';
 import { BaseTypeOrmGenerator } from './generator.interface';
@@ -18,7 +18,7 @@ export class TypeOrmConstantsGenerator extends BaseTypeOrmGenerator {
    * Generates constant definitions and writes them to a file.
    * @param config - Configuration object containing output path and other settings
    */
-  public generate(config: Config): void {
+  public generate(config: TransformedConfig): void {
     logMessage(chalk.blue('Constants generating...'));
 
     const constants = this.generateConstants();

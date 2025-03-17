@@ -1,8 +1,8 @@
-import { Config } from '../types';
+import { TransformedConfig } from '../types';
 import path from 'path';
 
 export interface TypeOrmGenerator {
-  generate(config: Config): void;
+  generate(config: TransformedConfig): void;
 }
 
 /**
@@ -22,5 +22,5 @@ export abstract class BaseTypeOrmGenerator implements TypeOrmGenerator {
   /**
    * Implementation required by subclasses
    */
-  abstract generate(config: Config): void;
+  abstract generate(config: TransformedConfig): void;
 }

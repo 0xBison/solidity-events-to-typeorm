@@ -2,12 +2,12 @@ import chalk from 'chalk';
 import { BaseTypeOrmGenerator } from './generator.interface';
 import mkdirp from 'mkdirp';
 import path from 'path';
-import { Config } from '../types';
+import { TransformedConfig } from '../types';
 import { writeFileToLint } from '../utils/lint';
 import { logMessage } from '../utils/loggingUtils';
 
 export class TypeOrmBlockchainEntityGenerator extends BaseTypeOrmGenerator {
-  generate(config: Config): void {
+  generate(config: TransformedConfig): void {
     logMessage('BlockchainEventEntity generating...');
 
     const entitiesPath = path.join(config.output.path, config.output.entities);

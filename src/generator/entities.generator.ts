@@ -9,7 +9,7 @@ import {
   generateTypeOrmEntityName,
 } from './entity.generator';
 import {
-  Config,
+  TransformedConfig,
   ContractDetails,
   ContractEventDetails,
   ContractInfo,
@@ -39,7 +39,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
    * Main generation method that orchestrates the entity generation process
    * @param config Configuration object containing paths and settings
    */
-  public generate(config: Config): void {
+  public generate(config: TransformedConfig): void {
     logMessage(chalk.blue('Entities generating...'));
 
     if (!this.xxHashInstance) {
@@ -54,25 +54,6 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
     logMessage(chalk.green('Entities generated successfully'));
   }
 
-  /**
-   * Extracts contract information from an artifact file
-   * @param artifactPath Path to the contract artifact
-   * @returns Contract information including ABI and name
-   * @private
-   */
-  private getContractInfoFromPath(artifactPath: string): ContractInfo {
-    const pathComponents = artifactPath.split('/');
-
-    const contractName = pathComponents[pathComponents.length - 1].replace(
-      '.json',
-      '',
-    );
-
-    const abi = JSON.parse(fs.readFileSync(artifactPath, 'utf-8'));
-
-    return { abi, contractName };
-  }
-
   // Contract Processing Methods
   /**
    * Processes all artifacts and generates contract details
@@ -81,25 +62,17 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
    * @returns Array of processed contract details
    * @private
    */
-  private processArtifacts(config: Config): ContractDetails[] {
+  private processArtifacts(config: TransformedConfig): ContractDetails[] {
     const topicsToContracts = new Map<string, TopicDetails>();
     const contracts: ContractDetails[] = [];
 
     // initialize this to the contract artifacts provided
-    const contractsToProcess: ContractInfo[] =
-      config.artifacts.contractArtifacts;
+    const contractsToProcess: ContractInfo[] = config.contracts;
 
     // process each contract artifact
     for (const contractInfo of contractsToProcess) {
-      console.log('here');
-
-      // filter out events if specified
-      const filteredContractInfo = config.artifacts.filterEvents
-        ? config.artifacts.filterEvents(contractInfo)
-        : contractInfo;
-
       const contractDetails = this.processContractABI(
-        filteredContractInfo,
+        contractInfo,
         topicsToContracts,
         config,
       );
@@ -123,7 +96,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
   private processContractABI(
     contractInfo: ContractInfo,
     topicsToContracts: Map<string, TopicDetails>,
-    config: Config,
+    config: TransformedConfig,
   ): ContractDetails {
     const contractInterface = new ethers.utils.Interface(contractInfo.abi);
     const events = this.extractEventDetails(
@@ -136,7 +109,6 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
       events,
       contractInfo.contractName,
       topicsToContracts,
-      config,
     );
 
     return {
@@ -178,21 +150,17 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
    * @param config Configuration object
    * @private
    */
-  private writeContractABI(contractInfo: ContractInfo, config: Config): void {
+  private writeContractABI(
+    contractInfo: ContractInfo,
+    config: TransformedConfig,
+  ): void {
     const abisOutputDir = path.join(config.output.path, config.output.abis);
     mkdirp.sync(abisOutputDir);
 
-    const contractNames = this.getContractNames(
-      contractInfo.contractName,
-      config,
+    fs.writeFileSync(
+      path.join(abisOutputDir, `${contractInfo.contractName}.json`),
+      JSON.stringify(contractInfo.abi, null, 2),
     );
-
-    for (const name of contractNames) {
-      fs.writeFileSync(
-        path.join(abisOutputDir, `${name}.json`),
-        JSON.stringify(contractInfo.abi, null, 2),
-      );
-    }
   }
 
   /**
@@ -207,10 +175,9 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
     events: ContractEventDetails[],
     contractName: string,
     topicsToContracts: Map<string, TopicDetails>,
-    config: Config,
   ): void {
     for (const event of events) {
-      const contractNames = this.getContractNames(contractName, config);
+      const contractNames = [contractName];
 
       if (topicsToContracts.has(event.topic)) {
         topicsToContracts
@@ -223,20 +190,6 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
         });
       }
     }
-  }
-
-  /**
-   * Gets all contract names including mappings from config
-   * @param contractName Original contract name
-   * @param config Configuration object
-   * @returns Array of contract names
-   * @private
-   */
-  private getContractNames(contractName: string, config: Config): string[] {
-    if (!config.contractMappings?.[contractName]) {
-      return [contractName];
-    }
-    return config.contractMappings[contractName];
   }
 
   // Entity Generation Methods

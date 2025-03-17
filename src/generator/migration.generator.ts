@@ -4,12 +4,12 @@ import path from 'path';
 import { PGliteDriver } from 'typeorm-pglite';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { BaseTypeOrmGenerator } from './generator.interface';
-import { Config } from '../types';
+import { TransformedConfig } from '../types';
 import chalk from 'chalk';
 import { logMessage } from '../utils/loggingUtils';
 
 export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
-  public async generate(config: Config): Promise<void> {
+  public async generate(config: TransformedConfig): Promise<void> {
     const {
       migrations,
       output: { entities: entitiesPath, path: outputPath },

@@ -3,14 +3,14 @@ import { BaseTypeOrmGenerator } from './generator.interface';
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
-import { Config } from '../types';
+import { TransformedConfig } from '../types';
 import chalk from 'chalk';
 import { logMessage } from '../utils/loggingUtils';
 
 const typeormUml = new TypeormUml();
 
 export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
-  public async generate(config: Config): Promise<void> {
+  public async generate(config: TransformedConfig): Promise<void> {
     if (!config.docs) {
       // skip docs generation
       return;
