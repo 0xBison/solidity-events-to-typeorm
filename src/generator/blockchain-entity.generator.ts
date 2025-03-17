@@ -90,6 +90,15 @@ export abstract class BlockchainEventEntity {
   })
   public blockHash: string;
 
+  @Column({
+    name: 'block_number',
+    type: 'numeric',
+    nullable: false,
+    precision: ${Number.MAX_SAFE_INTEGER},
+  })
+  public blockNumber: number;
+
+
   @Column({ name: 'block_timestamp', type: 'timestamptz', nullable: false })
   public blockTimestamp: string;
 

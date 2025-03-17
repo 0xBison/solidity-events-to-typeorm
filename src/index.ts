@@ -6,17 +6,28 @@ import { TypeOrmUmlGenerator } from './generator/uml.generator';
 import * as fs from 'fs';
 import { lintFiles } from './utils/lint';
 import { TypeOrmBlockchainEntityGenerator } from './generator/blockchain-entity.generator';
-import { normalizeConfigPaths } from './utils/pathUtils';
 import { TypeOrmMigrationGenerator } from './generator/migration.generator';
 import { logMessage } from './utils/loggingUtils';
+import path from 'path';
+import callsite from 'callsite';
 
 export async function generateTypeOrmFiles(config: Config): Promise<void> {
   if (config.enableLogging) {
     process.env.LOGGING_ENABLED = 'true';
   }
 
+  const stack = callsite();
+  // The caller is usually the second item in the stack
+  const caller = stack[1];
+  const callerFile = caller.getFileName().split('/').slice(0, -1).join('/');
+
+  const outputPath = path.resolve(callerFile, config.output.path);
+
   // Normalize all paths to be absolute relative to project root
-  const normalizedConfig = normalizeConfigPaths(config);
+  const normalizedConfig = {
+    ...config,
+    output: { ...config.output, path: outputPath },
+  };
 
   // Log the resolved output path
   logMessage(`Files will be created at: ${normalizedConfig.output.path}`);

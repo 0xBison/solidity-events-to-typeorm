@@ -29,7 +29,6 @@ export interface Config {
     path: string;
     entities: string;
     abis: string; // New: Path for ABI output
-    eventTopicList: string; // New: Path for event topic list output
   };
   docs?: {
     path: string;
@@ -41,18 +40,11 @@ export interface Config {
     schemaName: string;
   };
   artifacts: {
-    includePaths: string[];
-    excludePaths: string[];
     contractArtifacts: ContractInfo[];
     filterEvents?: (contract: ContractInfo) => ContractInfo;
   };
   contractMappings?: {
     [originalContract: string]: string[];
-  };
-  // Optional: Add generator-specific config sections if needed
-  typeOrm?: {
-    // TypeORM specific settings
-    namingStrategy?: string;
   };
   enableLogging?: boolean;
 }

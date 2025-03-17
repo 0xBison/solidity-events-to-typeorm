@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import mkdirp from 'mkdirp';
 import path from 'path';
-import { glob } from 'glob';
 import { ethers } from 'ethers';
 import xxhash, { XXHashAPI } from 'xxhash-wasm';
 import { EventFragment, JsonFragment } from '@ethersproject/abi';
@@ -48,25 +47,11 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
     }
 
     const entitiesPath = path.join(config.output.path, config.output.entities);
-    const artifactPaths = this.getArtifactPaths(config);
-    const contracts = this.processArtifacts(artifactPaths, config);
+    const contracts = this.processArtifacts(config);
 
     this.generateEntities(contracts, entitiesPath);
 
     logMessage(chalk.green('Entities generated successfully'));
-  }
-
-  // File Processing Methods
-  /**
-   * Resolves artifact paths from config, handling both direct file paths and glob patterns
-   * @param config Configuration object
-   * @returns Array of resolved file paths
-   * @private
-   */
-  private getArtifactPaths(config: Config): string[] {
-    return glob.sync(`{${config.artifacts.includePaths.join(',')}}`, {
-      ignore: config.artifacts.excludePaths,
-    });
   }
 
   /**
@@ -96,10 +81,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
    * @returns Array of processed contract details
    * @private
    */
-  private processArtifacts(
-    artifactPaths: string[],
-    config: Config,
-  ): ContractDetails[] {
+  private processArtifacts(config: Config): ContractDetails[] {
     const topicsToContracts = new Map<string, TopicDetails>();
     const contracts: ContractDetails[] = [];
 
@@ -107,14 +89,10 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
     const contractsToProcess: ContractInfo[] =
       config.artifacts.contractArtifacts;
 
-    // load any additional contract artifacts from the artifact paths
-    for (const artifactPath of artifactPaths) {
-      const contractInfo = this.getContractInfoFromPath(artifactPath);
-      contractsToProcess.push(contractInfo);
-    }
-
     // process each contract artifact
     for (const contractInfo of contractsToProcess) {
+      console.log('here');
+
       // filter out events if specified
       const filteredContractInfo = config.artifacts.filterEvents
         ? config.artifacts.filterEvents(contractInfo)
@@ -128,8 +106,6 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
 
       contracts.push(contractDetails);
     }
-
-    this.writeTopicList(topicsToContracts, config);
 
     logMessage(chalk.green('Topic list written successfully'));
 
@@ -217,22 +193,6 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
         JSON.stringify(contractInfo.abi, null, 2),
       );
     }
-  }
-
-  /**
-   * Writes topic list to output file
-   * @param topicsToContracts Map of topics to contract details
-   * @param config Configuration object
-   * @private
-   */
-  private writeTopicList(
-    topicsToContracts: Map<string, TopicDetails>,
-    config: Config,
-  ): void {
-    fs.writeFileSync(
-      path.join(config.output.path, config.output.eventTopicList),
-      JSON.stringify(Object.fromEntries(topicsToContracts), null, 2),
-    );
   }
 
   /**
