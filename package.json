@@ -48,9 +48,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@types/callsite": "^1.0.34",
     "@types/eslint": "^9.6.1",
-    "callsite": "^1.0.0",
     "chalk": "^4.1.2",
     "eslint-plugin-unused-imports": "^4.1.4",
     "ethers": "^5.7.2",

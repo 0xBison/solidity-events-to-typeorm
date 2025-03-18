@@ -46,7 +46,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
       throw new Error('Generator not initialized. Call initialize() first.');
     }
 
-    const entitiesPath = path.join(config.output.path, config.output.entities);
+    const entitiesPath = config.output.entities;
     const contracts = this.processArtifacts(config);
 
     this.generateEntities(contracts, entitiesPath);
@@ -154,7 +154,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
     contractInfo: ContractInfo,
     config: TransformedConfig,
   ): void {
-    const abisOutputDir = path.join(config.output.path, config.output.abis);
+    const abisOutputDir = config.output.abis;
     mkdirp.sync(abisOutputDir);
 
     fs.writeFileSync(

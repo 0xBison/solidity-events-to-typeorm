@@ -16,18 +16,14 @@ export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
       return;
     }
 
-    const docsDir = path.resolve(config.output.path, config.docs.path);
+    // Add a type assertion to help TypeScript understand otherwise it flags non existent issues
+    const docs = config.docs as NonNullable<typeof config.docs>;
 
-    const entitiesDir = path.resolve(
-      config.output.path,
-      config.output.entities,
-    );
-
-    if (!fs.existsSync(docsDir)) {
-      fs.mkdirSync(docsDir, { recursive: true });
+    if (!fs.existsSync(docs.path)) {
+      fs.mkdirSync(docs.path, { recursive: true });
     }
 
-    const files = fs.readdirSync(entitiesDir);
+    const files = fs.readdirSync(config.output.entities);
 
     // Extract unique IDs from filenames
     const idSet = new Set<string>();
@@ -44,7 +40,7 @@ export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
       direction: Direction.LR,
       format: Format.PNG,
       handwritten: true,
-      'plantuml-url': config.docs.plantUmlServer,
+      'plantuml-url': docs.plantUmlServer,
     };
 
     // Base ormConfig
@@ -62,8 +58,11 @@ export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
 
     // Prepare promises for each unique ID
     const promises = Array.from(idSet).map(async (id) => {
-      const pattern = path.join(entitiesDir, `*_${id}.ts`);
-      const configFilePath = path.join(entitiesDir, `ormconfig_${id}.json`);
+      const pattern = path.join(config.output.entities, `*_${id}.ts`);
+      const configFilePath = path.join(
+        config.output.entities,
+        `ormconfig_${id}.json`,
+      );
 
       // Create a specific ormConfig for each ID
       const ormConfig = {
@@ -74,7 +73,7 @@ export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
       fs.writeFileSync(configFilePath, JSON.stringify(ormConfig, null, 2));
 
       try {
-        const outputFilePath = path.join(docsDir, `uml_${id}.png`);
+        const outputFilePath = path.join(docs.path, `uml_${id}.png`);
         await this.generateUmlForEntities(
           configFilePath,
           outputFilePath,
@@ -87,9 +86,9 @@ export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
     });
 
     // Add promise for all entities
-    const allEntitiesPattern = path.join(entitiesDir, '*.ts');
+    const allEntitiesPattern = path.join(config.output.entities, '*.ts');
     const allEntitiesConfigFilePath = path.join(
-      entitiesDir,
+      config.output.entities,
       'ormconfig_all.json',
     );
 
@@ -107,7 +106,7 @@ export class TypeOrmUmlGenerator extends BaseTypeOrmGenerator {
       (async () => {
         try {
           const allEntitiesOutputPath = path.join(
-            docsDir,
+            docs.path,
             'uml_all_entities.png',
           );
           await this.generateUmlForEntities(

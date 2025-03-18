@@ -10,7 +10,7 @@ export class TypeOrmBlockchainEntityGenerator extends BaseTypeOrmGenerator {
   generate(config: TransformedConfig): void {
     logMessage('BlockchainEventEntity generating...');
 
-    const entitiesPath = path.join(config.output.path, config.output.entities);
+    const entitiesPath = config.output.entities;
     mkdirp.sync(entitiesPath);
 
     const blockchainEntity = `import { BeforeInsert, Column, CreateDateColumn, PrimaryColumn } from 'typeorm';

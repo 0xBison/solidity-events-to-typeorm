@@ -12,7 +12,7 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
   public async generate(config: TransformedConfig): Promise<void> {
     const {
       migrations,
-      output: { entities: entitiesPath, path: outputPath },
+      output: { entities: entitiesPath },
     } = config;
 
     if (!migrations) {
@@ -22,20 +22,14 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
 
     const { path: migrationsPath, migrationName, schemaName } = migrations;
 
-    // Get paths to all generated entity files
-    const entitiesDir = path.resolve(outputPath, entitiesPath);
-
     const entityFiles = fs
-      .readdirSync(entitiesDir)
+      .readdirSync(entitiesPath)
       .filter((file) => file.endsWith('.ts') && file !== 'index.ts')
-      .map((file) => path.join(entitiesDir, file));
-
-    // Create migrations directory
-    const migrationsDir = path.resolve(outputPath, migrationsPath);
+      .map((file) => path.join(entitiesPath, file));
 
     await this.generateSchemaAwareMigrations(
       entityFiles,
-      migrationsDir,
+      migrationsPath,
       migrationName,
       schemaName,
     );
