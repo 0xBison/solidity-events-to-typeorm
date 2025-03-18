@@ -1,4 +1,4 @@
-import { Config, ContractInfo, TransformedConfig } from './types';
+import { Config, Contracts, ContractInfo, TransformedConfig } from './types';
 import { TypeOrmConstantsGenerator } from './generator/constants.generator';
 import { TypeOrmEntitiesGenerator } from './generator/entities.generator';
 import { TypeOrmIndexGenerator } from './generator/index.generator';
@@ -86,3 +86,5 @@ export async function generate(config: Config): Promise<void> {
 
   await lintFiles();
 }
+
+export { Config, Contracts };
