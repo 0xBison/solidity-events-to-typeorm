@@ -92,9 +92,8 @@ export abstract class BlockchainEventEntity {
 
   @Column({
     name: 'block_number',
-    type: 'numeric',
+    type: 'bigint',
     nullable: false,
-    precision: ${Number.MAX_SAFE_INTEGER},
   })
   public blockNumber: number;
 

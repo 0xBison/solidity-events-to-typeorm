@@ -39,6 +39,7 @@ export interface TransformedConfig {
     path: string;
     migrationName: string;
     schemaName: string;
+    schemaVariable?: boolean;
   };
   enableLogging?: boolean;
 }
@@ -65,6 +66,7 @@ export interface Config {
     path: string;
     migrationName: string;
     schemaName: string;
+    schemaVariable?: boolean;
   };
   enableLogging?: boolean;
 }

@@ -8,6 +8,9 @@ import { TransformedConfig } from '../types';
 import chalk from 'chalk';
 import { logMessage } from '../utils/loggingUtils';
 
+// Special placeholder for dynamic schema replacement
+const SCHEMA_VARIABLE_PLACEHOLDER = '__SCHEMA_VARIABLE_PLACEHOLDER__';
+
 export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
   public async generate(config: TransformedConfig): Promise<void> {
     const {
@@ -20,7 +23,12 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
       return;
     }
 
-    const { path: migrationsPath, migrationName, schemaName } = migrations;
+    const {
+      path: migrationsPath,
+      migrationName,
+      schemaName,
+      schemaVariable,
+    } = migrations;
 
     const entityFiles = fs
       .readdirSync(entitiesPath)
@@ -32,6 +40,7 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
       migrationsPath,
       migrationName,
       schemaName,
+      schemaVariable,
     );
   }
 
@@ -41,7 +50,13 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
     outputDir: string,
     name: string,
     schemaName = 'public',
+    schemaVariable = false,
   ) {
+    // Use either the schema name directly or a placeholder for variable schema
+    const tempSchemaName = schemaVariable
+      ? SCHEMA_VARIABLE_PLACEHOLDER
+      : schemaName;
+
     // Create a temporary DataSource using PGlite
     const dataSource = new DataSource({
       type: 'postgres', // Use postgres type
@@ -50,6 +65,7 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
       logging: false,
       entities: entityPaths,
       namingStrategy: new SnakeNamingStrategy(),
+      schema: tempSchemaName,
     });
 
     try {
@@ -64,13 +80,13 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
         // Replace any direct table references to include schema
         let query = q.query.replace(
           /CREATE TABLE "([^"]+)"/g,
-          `CREATE TABLE "${schemaName}"."$1"`,
+          `CREATE TABLE "$1"`,
         );
 
         // Adjust ALTER TABLE references
         query = query.replace(
           /ALTER TABLE( ONLY)? "([^"]+)"/g,
-          `ALTER TABLE$1 "${schemaName}"."$2"`,
+          `ALTER TABLE$1 "$2"`,
         );
 
         return query;
@@ -81,7 +97,7 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
         // Replace DROP TABLE statements
         const query = q.query.replace(
           /DROP TABLE "([^"]+)"/g,
-          `DROP TABLE IF EXISTS "${schemaName}"."$1" CASCADE`,
+          `DROP TABLE IF EXISTS "$1" CASCADE`,
         );
 
         return query;
@@ -90,7 +106,13 @@ export class TypeOrmMigrationGenerator extends BaseTypeOrmGenerator {
       // Create migration content
       const timestamp = new Date().getTime();
       const className = `${name}${timestamp}`;
-      const content = `
+
+      // Generate the CREATE SCHEMA statement based on whether we're using a variable
+      const createSchemaStatement = schemaVariable
+        ? `CREATE SCHEMA IF NOT EXISTS \${process.env.${schemaName}}`
+        : `CREATE SCHEMA IF NOT EXISTS "${schemaName}"`;
+
+      let content = `
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class ${className} implements MigrationInterface {
@@ -98,7 +120,7 @@ export class ${className} implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create schema if it doesn't exist
-    await queryRunner.query(\`CREATE SCHEMA IF NOT EXISTS "${schemaName}"\`);
+    await queryRunner.query(\`${createSchemaStatement}\`);
     
 ${upQueries
   .map((query) => `    await queryRunner.query(\`${query}\`);`)
@@ -111,6 +133,18 @@ ${downQueries
   .join('\n\n')}
   }
 }`;
+
+      // If using a variable, replace the placeholder with the variable expression
+      if (schemaVariable) {
+        const variablePattern = new RegExp(
+          `"${SCHEMA_VARIABLE_PLACEHOLDER}"`,
+          'g',
+        );
+        content = content.replace(
+          variablePattern,
+          '${process.env.' + schemaName + '}',
+        );
+      }
 
       // Ensure output directory exists
       if (!fs.existsSync(outputDir)) {

@@ -84,7 +84,8 @@ interface Config {
   migrations?: {
     path: string; // Path for generated migrations
     migrationName: string; // Name of the migration class
-    schemaName: string; // Database schema name
+    schemaName: string; // Database schema name or env variable name
+    schemaVariable?: boolean; // When true, schemaName is treated as an env variable name
   };
   
   // Optional: Enable logging during generation
@@ -122,6 +123,39 @@ If the `migrations` option is configured, the tool generates TypeORM migration f
 
 1. Create tables for all entities
 2. Define foreign key relationships
+
+#### Migrations Configuration
+
+The migrations configuration supports dynamic schema names through environment variables:
+
+```typescript
+migrations?: {
+  path: string;           // Path for generated migrations
+  migrationName: string;  // Name of the migration class
+  schemaName: string;     // Database schema name or env variable name
+  schemaVariable?: boolean; // When true, schemaName is treated as an env variable name
+};
+```
+
+#### Using Environment Variables for Schema Names
+
+You can use environment variables for schema names by setting `schemaVariable: true` in your configuration:
+
+```typescript
+migrations: {
+  path: path.resolve(outputPath, 'migrations/'),
+  migrationName: 'MyMigrations',
+  schemaName: 'SQL_SCHEMA', // Name of the environment variable
+  schemaVariable: true,     // Treat schemaName as an env variable
+}
+```
+
+When `schemaVariable` is set to `true`:
+- The migration generator treats `schemaName` as the name of an environment variable
+- Generated migrations will use `${process.env.SQL_SCHEMA}` instead of a hardcoded schema name
+- This allows you to deploy the same migrations to different environments with different schema names
+
+If `schemaVariable` is omitted or set to `false` (default), `schemaName` is used as a literal schema name in the generated migrations.
 
 ### Documentation
 
