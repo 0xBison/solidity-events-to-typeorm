@@ -132,7 +132,7 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
       .filter((item: JsonFragment) => item.type === 'event')
       .map((item: JsonFragment) => <EventFragment>item)
       .map((item: EventFragment): ContractEventDetails => {
-        const topic = contractInterface.getEventTopic(item.name);
+        const topic = contractInterface.getEventTopic(item);
         return {
           eventName: item.name,
           topic,
