@@ -8,6 +8,7 @@ import { TypeOrmBlockchainEntityGenerator } from './generator/blockchain-entity.
 import { TypeOrmMigrationGenerator } from './generator/migration.generator';
 import { logMessage } from './utils/loggingUtils';
 import path from 'path';
+import { getFullEventSignature } from './utils/getFullEventSignature';
 
 function transformConfig(config: Config): TransformedConfig {
   const { contracts, ...rest } = config;
@@ -87,4 +88,4 @@ export async function generate(config: Config): Promise<void> {
   await lintFiles();
 }
 
-export { Config, Contracts };
+export { Config, Contracts, getFullEventSignature };

@@ -19,6 +19,7 @@ import { BaseTypeOrmGenerator } from './generator.interface';
 import { writeFileToLint } from '../utils/lint';
 import chalk from 'chalk';
 import { logMessage } from '../utils/loggingUtils';
+import { getFullEventSignature } from '../utils/getFullEventSignature';
 
 /**
  * Generator for creating TypeORM entities from smart contract events.
@@ -132,10 +133,11 @@ export class TypeOrmEntitiesGenerator extends BaseTypeOrmGenerator {
       .filter((item: JsonFragment) => item.type === 'event')
       .map((item: JsonFragment) => <EventFragment>item)
       .map((item: EventFragment): ContractEventDetails => {
-        const inputTypes = item.inputs.map((input) => input.type).join(',');
-        const signature = `${item.name}(${inputTypes})`;
+        // Get the full event signature from the event fragment (includes nested tuples and arrays)
+        const signature = getFullEventSignature(item);
 
-        // Get the event fragment using the full signature
+        // Get the event fragment using the full signature.
+        // since we access by the full signature, if there is an overload event, we will get the correct one
         const eventFragment = contractInterface.getEvent(signature);
         const topic = contractInterface.getEventTopic(eventFragment);
 
