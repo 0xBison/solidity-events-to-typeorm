@@ -1,6 +1,6 @@
 {
   "name": "solidity-events-to-typeorm",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Generate TypeORM entities from Solidity event abi",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
